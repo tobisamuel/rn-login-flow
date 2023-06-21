@@ -1,52 +1,98 @@
-import { Image, StyleSheet, View } from "react-native";
-import React, { useState } from "react";
-import FormTextInput from "@/components/FormTextInput";
+import React, { useState, useCallback, useRef } from "react";
+import {
+  View,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+} from "react-native";
+
 import Button from "@/components/Button";
-import colors from "@/config/colors";
+import FormTextInput, { FocusHandle } from "@/components/FormTextInput";
+import strings from "@/config/strings";
 
 export default function LoginScreen() {
+  const passwordInputRef = useRef<FocusHandle>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
-  function handleEmailChange(email: string) {
+  const handleEmailChange = useCallback((email: string) => {
     setEmail(email);
-  }
+  }, []);
 
-  function handlePasswordChange(password: string) {
+  const handlePasswordChange = useCallback((password: string) => {
     setPassword(password);
+  }, []);
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+  };
+
+  function handleEmailSubmitPress() {
+    if (passwordInputRef.current) {
+      passwordInputRef.current.focus();
+    }
   }
 
-  function handleLoginPress() {
-    console.log("Login button pressed");
-  }
+  const handleLoginPress = () => {
+    alert(`${email} ${password}`);
+  };
+
+  const emailError =
+    !email && emailTouched ? strings.EMAIL_REQUIRED : undefined;
+
+  const passwordError =
+    !password && passwordTouched ? strings.PASSWORD_REQUIRED : undefined;
 
   return (
-    <View style={styles.container}>
-      <Image source={require("@/assets/logo.png")} style={styles.logo} />
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <Image source={require("@/assets/logo.png")} style={styles.logo} />
 
-      <View style={styles.form}>
-        <FormTextInput
-          value={email}
-          onChangeText={handleEmailChange}
-          placeholder="Email"
-        />
-        <FormTextInput
-          value={password}
-          onChangeText={handlePasswordChange}
-          placeholder="Password"
-        />
-        <Button label="Login" onPress={handleLoginPress} />
-      </View>
-    </View>
+        <View style={styles.form}>
+          {/* <Count /> */}
+          <FormTextInput
+            autoCorrect={false}
+            keyboardType="email-address"
+            returnKeyType="next"
+            value={email}
+            onChangeText={handleEmailChange}
+            onSubmitEditing={handleEmailSubmitPress}
+            placeholder="Email"
+            error={emailError}
+            onBlur={handleEmailBlur}
+          />
+          <FormTextInput
+            ref={passwordInputRef}
+            value={password}
+            onChangeText={handlePasswordChange}
+            placeholder="Password"
+            secureTextEntry={true}
+            returnKeyType="done"
+            onBlur={handlePasswordBlur}
+            error={passwordError}
+          />
+          <Button label="Login" onPress={handleLoginPress} />
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.WHITE,
-    alignItems: "center",
-    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
   },
   logo: {
     flex: 1,
@@ -55,8 +101,9 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   form: {
-    flex: 1,
-    justifyContent: "center",
-    width: "80%",
+    marginHorizontal: 20,
+    marginTop: 50,
+    marginBottom: 20,
+    rowGap: 20,
   },
 });
